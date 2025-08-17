@@ -780,6 +780,19 @@
             ctx.fill();
             ctx.stroke();
             
+            // Player aiming line
+            const aimAngle = Math.atan2(game.mouse.y - game.player.y, game.mouse.x - game.player.x);
+            const aimLineLength = game.player.size + 15;
+            ctx.strokeStyle = currentPlant.bulletColor;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(game.player.x + Math.cos(aimAngle) * game.player.size, game.player.y + Math.sin(aimAngle) * game.player.size);
+            ctx.lineTo(game.player.x + Math.cos(aimAngle) * aimLineLength, game.player.y + Math.sin(aimAngle) * aimLineLength);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.shadowBlur = 0;
+            
             // Bacteria details
             if (game.player.currentPlant === 0) { // Streptoblast - New vibrant design
                 // Create energetic spikes radiating from center
@@ -824,79 +837,76 @@
                 }
                 ctx.globalAlpha = 1;
                 
-            } else if (game.player.currentPlant === 1) { // Luminococcus
+            } else if (game.player.currentPlant === 1) { // Luminococcus - Glowing petal design
+                ctx.shadowColor = '#FFC107';
+                ctx.shadowBlur = 20;
+                
+                // Draw a core
                 ctx.fillStyle = '#FFEB3B';
+                ctx.beginPath();
+                ctx.arc(game.player.x, game.player.y, game.player.size * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw glowing petals
+                ctx.fillStyle = '#FFF9C4';
                 for (let i = 0; i < 8; i++) {
-                    const angle = (i / 8) * Math.PI * 2;
-                    const petalX = game.player.x + Math.cos(angle) * game.player.size * 1.1;
-                    const petalY = game.player.y + Math.sin(angle) * game.player.size * 1.1;
+                    const angle = (i / 8) * Math.PI * 2 + Date.now() * 0.0003;
+                    const petalX = game.player.x + Math.cos(angle) * game.player.size;
+                    const petalY = game.player.y + Math.sin(angle) * game.player.size;
                     ctx.beginPath();
-                    ctx.ellipse(petalX, petalY, game.player.size * 0.4, game.player.size * 0.2, angle, 0, Math.PI * 2);
+                    ctx.arc(petalX, petalY, game.player.size * 0.35, 0, Math.PI * 2);
                     ctx.fill();
                 }
-                
-                ctx.fillStyle = '#FF8F00';
+                ctx.shadowBlur = 0;
+            } else if (game.player.currentPlant === 2) { // Pyroblast - Aggressive, toxic design
+                ctx.shadowColor = '#F44336';
+                ctx.shadowBlur = 20;
+
+                // Spiky core
+                ctx.fillStyle = '#FF5252';
                 ctx.beginPath();
-                ctx.arc(game.player.x, game.player.y, game.player.size * 0.5, 0, Math.PI * 2);
+                ctx.arc(game.player.x, game.player.y, game.player.size * 0.8, 0, Math.PI * 2);
                 ctx.fill();
                 
-            } else if (game.player.currentPlant === 2) { // Pyroblast
-                ctx.strokeStyle = '#2E7D32';
+                // Flame-like protrusions
+                ctx.strokeStyle = '#FF3D00';
                 ctx.lineWidth = 4;
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2 + Date.now() * 0.0005;
+                    const spikeX = game.player.x + Math.cos(angle) * game.player.size * 1.5;
+                    const spikeY = game.player.y + Math.sin(angle) * game.player.size * 1.5;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(game.player.x, game.player.y);
+                    ctx.lineTo(spikeX, spikeY);
+                    ctx.stroke();
+                }
+
+                // Inner toxic glow
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255, 23, 68, 0.4)';
+                const innerGlowRadius = game.player.size * 0.6 + Math.sin(Date.now() * 0.01) * 2;
                 ctx.beginPath();
-                ctx.moveTo(game.player.x, game.player.y + game.player.size);
-                ctx.lineTo(game.player.x - game.player.size * 0.3, game.player.y - game.player.size * 0.2);
-                ctx.moveTo(game.player.x, game.player.y + game.player.size);
-                ctx.lineTo(game.player.x + game.player.size * 0.3, game.player.y - game.player.size * 0.2);
-                ctx.stroke();
-                
-                ctx.fillStyle = '#E53935';
-                ctx.beginPath();
-                ctx.arc(game.player.x - game.player.size * 0.3, game.player.y - game.player.size * 0.2, game.player.size * 0.6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(game.player.x + game.player.size * 0.3, game.player.y - game.player.size * 0.2, game.player.size * 0.6, 0, Math.PI * 2);
+                ctx.arc(game.player.x, game.player.y, innerGlowRadius, 0, Math.PI * 2);
                 ctx.fill();
             }
             
-            // Eyes
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#1B5E20';
-            ctx.fillRect(game.player.x - game.player.size * 0.2, game.player.y - game.player.size * 0.1, game.player.size * 0.15, game.player.size * 0.15);
-            ctx.fillRect(game.player.x + game.player.size * 0.05, game.player.y - game.player.size * 0.1, game.player.size * 0.15, game.player.size * 0.15);
+            // Health bar for player
+            const healthBarWidth = 100;
+            const healthBarHeight = 10;
+            ctx.fillStyle = '#333';
+            ctx.fillRect(game.player.x - healthBarWidth / 2, game.player.y + game.player.size + 10, healthBarWidth, healthBarHeight);
             
-            ctx.fillStyle = '#FFF';
-            ctx.fillRect(game.player.x - game.player.size * 0.15, game.player.y - game.player.size * 0.05, game.player.size * 0.05, game.player.size * 0.05);
-            ctx.fillRect(game.player.x + game.player.size * 0.1, game.player.y - game.player.size * 0.05, game.player.size * 0.05, game.player.size * 0.05);
-            
-            // Player health bar
-            const playerBarWidth = 60;
-            const playerBarHeight = 8;
-            const playerHealthPercent = game.player.health / game.player.maxHealth;
-            
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-            ctx.fillRect(game.player.x - playerBarWidth/2, game.player.y - game.player.size - 15, playerBarWidth, playerBarHeight);
-            
-            ctx.fillStyle = 'rgba(0, 255, 0, 0.9)';
-            ctx.fillRect(game.player.x - playerBarWidth/2, game.player.y - game.player.size - 15, playerBarWidth * playerHealthPercent, playerBarHeight);
-            
-            // Aim line
-            ctx.strokeStyle = 'rgba(255, 107, 53, 0.5)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(game.player.x, game.player.y);
-            ctx.lineTo(game.mouse.x, game.mouse.y);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            const healthPercent = game.player.health / game.player.maxHealth;
+            ctx.fillStyle = healthPercent > 0.5 ? '#00FF00' : (healthPercent > 0.2 ? '#FFD700' : '#FF0000');
+            ctx.fillRect(game.player.x - healthBarWidth / 2, game.player.y + game.player.size + 10, healthBarWidth * healthPercent, healthBarHeight);
         }
 
         function updateUI() {
-            const currentPlant = plants[game.player.currentPlant];
             document.getElementById('score').textContent = game.score;
-            document.getElementById('highScore').textContent = game.highScore;
             document.getElementById('health').textContent = Math.max(0, game.player.health);
             document.getElementById('wave').textContent = game.wave;
+            const currentPlant = plants[game.player.currentPlant];
             document.getElementById('currentPlant').textContent = currentPlant.name;
             document.getElementById('damage').textContent = currentPlant.damage;
             document.getElementById('fireRate').textContent = currentPlant.description;
@@ -905,24 +915,27 @@
 
         function gameOver() {
             game.gameRunning = false;
-            
             if (game.score > game.highScore) {
                 game.highScore = game.score;
                 localStorage.setItem('plantDoomHighScore', game.highScore);
             }
+            document.getElementById('highScore').textContent = game.highScore;
             
             document.getElementById('startScreen').style.display = 'flex';
-            document.getElementById('gameTitle').innerHTML = `Game Over! Score: ${game.score}`;
-            playSound(80, 0.5, 'square', 0.5);
-            setTimeout(() => playSound(60, 0.6, 'square', 0.6), 250);
+            const title = document.getElementById('gameTitle');
+            title.innerHTML = 'GAME OVER<br>Final Score: ' + game.score;
+            
+            playSound(200, 0.5, 'square', 0.4);
+            setTimeout(() => playSound(100, 0.8, 'square', 0.5), 200);
         }
 
         function gameLoop() {
-            if (game.gameRunning) {
-                updateGame();
-                render();
-                requestAnimationFrame(gameLoop);
-            }
+            if (!game.gameRunning) return;
+            
+            updateGame();
+            render();
+            
+            requestAnimationFrame(gameLoop);
         }
     </script>
 </body>
